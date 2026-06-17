@@ -10,6 +10,8 @@ from embeddings import get_or_create_collection, add_chunks_to_collection, delet
 from retriever import search
 
 load_dotenv()
+if "GROQ_API_KEY" in st.secrets:
+    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
 
 
 def build_messages(system_prompt, history, context, question):
