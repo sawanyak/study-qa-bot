@@ -1,10 +1,6 @@
-import warnings
-warnings.filterwarnings("ignore")
-import logging
-logging.getLogger("transformers").setLevel(logging.ERROR)
+import os
 import uuid
 from datetime import datetime
-import os
 
 import streamlit as st
 from groq import Groq
@@ -34,13 +30,15 @@ def build_messages(system_prompt, history, context, question):
 
 
 def generate_answer(question, context_chunks, history):
-    context = "\n\n---\n\n".join(
-        f"[Source: {c['source']}]\n{c['text']}" for c in context_chunks
-    )
+    context = "\n\n---\n\n".join(c["text"] for c in context_chunks)
     system_prompt = (
-        "You are a helpful study assistant. Answer questions using ONLY "
-        "the provided context. Cite which source and page you got info "
-        "from. If the context doesn't contain the answer, say so clearly. "
+        "You are a helpful study assistant. Answer questions clearly and "
+        "directly using ONLY the provided context. "
+        "Do NOT mention sources, page numbers, document names, or where the "
+        "information came from. Do NOT say things like 'according to the document' "
+        "or 'the context mentions'. Just give the answer naturally, as if you "
+        "know the information. "
+        "If the context doesn't contain the answer, say so clearly. "
         "Consider previous conversation turns for context on follow-up questions."
     )
     client = Groq()
@@ -81,51 +79,156 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# ---- Theme: black / white / purple ----
 st.markdown(
     """
     <style>
+    :root {
+        --purple: #8b5cf6;
+        --purple-dim: #7c3aed;
+        --purple-glow: rgba(139, 92, 246, 0.15);
+        --bg: #0a0a0a;
+        --bg-elev: #141414;
+        --bg-card: #1a1a1a;
+        --border: #2a2a2a;
+        --text: #ffffff;
+        --text-dim: #a3a3a3;
+    }
+
+    .stApp {
+        background-color: var(--bg);
+    }
+
+    section[data-testid="stSidebar"] {
+        background-color: #0f0f0f;
+        border-right: 1px solid var(--border);
+    }
+
+    section[data-testid="stSidebar"] > div {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
+
+    .sidebar-top { flex: 0 0 auto; }
+    .sidebar-middle { flex: 1 1 auto; overflow-y: auto; }
+    .sidebar-bottom { flex: 0 0 auto; padding-top: 0.5rem; border-top: 1px solid var(--border); margin-top: 0.5rem; }
+
     .main-header {
-        font-size: 2rem;
+        font-size: 1.75rem;
         font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 0.25rem;
+        color: var(--text);
+        margin-bottom: 0.5rem;
     }
+
+    /* Primary button = purple */
     .stButton > button {
-        border-radius: 8px;
+        border-radius: 10px;
         font-weight: 500;
+        border: 1px solid var(--border);
+        background-color: var(--bg-elev);
+        color: var(--text);
+        transition: all 0.15s ease;
     }
+    .stButton > button:hover {
+        border-color: var(--purple);
+        background-color: var(--bg-card);
+    }
+    .stButton > button[kind="primary"] {
+        background-color: var(--purple);
+        border-color: var(--purple);
+        color: white;
+    }
+    .stButton > button[kind="primary"]:hover {
+        background-color: var(--purple-dim);
+        border-color: var(--purple-dim);
+    }
+
+    /* Chat messages */
+    [data-testid="stChatMessage"] {
+        background-color: transparent;
+        border: none;
+    }
+
+    /* Source card */
     .source-card {
-        background-color: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 0.85rem;
+        background-color: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 0.85rem 1rem;
         margin: 0.5rem 0;
     }
     .source-label {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         font-weight: 600;
-        color: #3b82f6;
+        color: var(--purple);
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.35rem;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.4rem;
     }
+    .source-text {
+        color: var(--text-dim);
+        font-size: 0.88rem;
+        line-height: 1.5;
+    }
+
     .uploaded-file {
         font-size: 0.85rem;
-        color: #4b5563;
+        color: var(--text-dim);
         padding: 4px 0;
     }
+
+    /* Expanders */
     div[data-testid="stExpander"] {
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background-color: var(--bg-elev);
     }
+    div[data-testid="stExpander"] summary {
+        color: var(--text-dim);
+    }
+    div[data-testid="stExpander"] summary:hover {
+        color: var(--purple);
+    }
+
+    /* Chat input */
+    [data-testid="stChatInput"] {
+        background-color: var(--bg-elev);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+    }
+    [data-testid="stChatInput"]:focus-within {
+        border-color: var(--purple);
+        box-shadow: 0 0 0 3px var(--purple-glow);
+    }
+
+    /* Sidebar text */
     section[data-testid="stSidebar"] hr {
         margin: 0.75rem 0;
+        border-color: var(--border);
+    }
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] label {
+        color: var(--text-dim);
+    }
+
+    /* File uploader */
+    [data-testid="stFileUploader"] {
+        background-color: var(--bg-elev);
+        border: 1px dashed var(--border);
+        border-radius: 10px;
+    }
+
+    /* Slider */
+    [data-testid="stSlider"] [role="slider"] {
+        background-color: var(--purple);
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
+# ---- State ----
 if "chats" not in st.session_state:
     st.session_state.chats = {}
 if "active_chat" not in st.session_state:
@@ -139,6 +242,7 @@ if not st.session_state.chats:
     new_chat()
 
 
+# ---- Sidebar ----
 with st.sidebar:
     st.markdown("### 📚 Study Notes Q&A")
 
@@ -172,11 +276,9 @@ with st.sidebar:
                 delete_chat(chat_id)
                 st.rerun()
 
+    # Spacer pushes settings to the bottom
+    st.markdown("<div style='height: 30vh;'></div>", unsafe_allow_html=True)
     st.markdown("---")
-
-    if st.button("⚙️ Settings", use_container_width=True):
-        st.session_state.show_settings = not st.session_state.show_settings
-        st.rerun()
 
     if st.session_state.show_settings:
         st.markdown("**Sources per answer**")
@@ -188,7 +290,12 @@ with st.sidebar:
             label_visibility="collapsed",
         )
 
+    if st.button("⚙️ Settings", use_container_width=True):
+        st.session_state.show_settings = not st.session_state.show_settings
+        st.rerun()
 
+
+# ---- Main ----
 active_id = st.session_state.active_chat
 active_chat = st.session_state.chats[active_id]
 collection = get_or_create_collection(active_id)
@@ -232,6 +339,7 @@ with st.expander(
             )
 
 
+# ---- Chat history ----
 for entry in active_chat["history"]:
     with st.chat_message("user"):
         st.markdown(entry["question"])
@@ -244,7 +352,7 @@ for entry in active_chat["history"]:
                         f"""
                         <div class="source-card">
                             <div class="source-label">{c['source']}</div>
-                            <div style="color: #4b5563; font-size: 0.88rem;">
+                            <div class="source-text">
                                 {c['text'][:400]}...
                             </div>
                         </div>
@@ -277,7 +385,7 @@ else:
                             f"""
                             <div class="source-card">
                                 <div class="source-label">{c['source']}</div>
-                                <div style="color: #4b5563; font-size: 0.88rem;">
+                                <div class="source-text">
                                     {c['text'][:400]}...
                                 </div>
                             </div>
