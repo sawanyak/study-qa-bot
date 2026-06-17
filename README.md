@@ -1,57 +1,79 @@
-# Study Notes Q&A
+# 📚 Study Notes Q&A Bot
 
-A RAG-powered chatbot that lets you upload PDF documents and ask questions about them. Built with Streamlit, ChromaDB, SentenceTransformers, and Groq.
+A RAG (Retrieval-Augmented Generation) chatbot that lets you upload your study notes as PDFs and ask natural-language questions about them. Built with Streamlit, ChromaDB, SentenceTransformers, and Groq's LLaMA 3.3 70B.
 
-## Features
+🔗 **Live demo:** [study-app-bot.streamlit.app](https://study-app-bot-evwdfx3efdeibipbjadt8y.streamlit.app/)
 
-- Multi-chat support with conversation history
-- Per-chat PDF upload and isolated knowledge bases
-- Source citations with expandable preview
-- Local embeddings via SentenceTransformers (no API key needed)
-- Fast LLM inference via Groq
+💻 **Repo:** [github.com/sawanyak/study-qa-bot](https://github.com/sawanyak/study-qa-bot)
 
-## Tech Stack
+---
 
-- **Frontend**: Streamlit
-- **Vector DB**: ChromaDB
-- **Embeddings**: SentenceTransformers (all-MiniLM-L6-v2)
-- **LLM**: Llama 3.3 70B via Groq
-- **Document loading**: LangChain + PyPDF
+## ✨ Features
 
-## Setup
+- 💬 **Multi-chat interface** — keep separate conversations for different subjects, each with its own documents and history
+- 📎 **Per-chat PDF uploads** — drop in one or more PDFs and start asking questions
+- 🧠 **Conversational memory** — the bot remembers earlier turns so you can ask natural follow-up questions
+- 🔍 **Clean answers with toggleable sources** — answers read naturally without inline citations; click **Show sources** to see the exact retrieved chunks and page numbers
+- ⚙️ **Adjustable retrieval** — tune how many source chunks are pulled per question
+- 🎨 **Modern dark UI** — black / white / purple theme inspired by Claude and ChatGPT
 
-1. Clone the repo
-   \`\`\`bash
-   git clone https://github.com/YOUR_USERNAME/study-qa-bot.git
-   cd study-qa-bot
-   \`\`\`
+---
 
-2. Install dependencies
-   \`\`\`bash
-   pip install -r requirements.txt
-   \`\`\`
+## 🛠️ Tech Stack
 
-3. Add your Groq API key to a `.env` file
-   \`\`\`
-   GROQ_API_KEY=your_key_here
-   \`\`\`
-   Get a free key at [console.groq.com](https://console.groq.com).
+| Layer | Tool |
+|---|---|
+| Frontend | Streamlit |
+| Vector DB | ChromaDB (local, persistent) |
+| Embeddings | SentenceTransformers (`all-MiniLM-L6-v2`) |
+| PDF parsing | LangChain + `pypdf` |
+| Text chunking | `RecursiveCharacterTextSplitter` (500 chars, 50 overlap) |
+| LLM | Groq API — LLaMA 3.3 70B Versatile |
+| Deployment | Streamlit Community Cloud |
 
-4. Run the app
-   \`\`\`bash
-   streamlit run app.py
-   \`\`\`
+---
 
-## How it works
+## 📁 Project Structure
 
-1. Upload one or more PDFs to a chat
-2. The app chunks them and stores embeddings in a per-chat ChromaDB collection
-3. When you ask a question, it retrieves the most relevant chunks and passes them to the LLM as context
-4. The LLM generates an answer grounded in your documents with citations
+```
+study-qa-bot/
+├── app.py            # Streamlit UI + chat orchestration
+├── ingest.py         # PDF loading + chunking
+├── embeddings.py     # ChromaDB collection management
+├── retriever.py      # Similarity search over chunks
+├── requirements.txt  # Pinned dependencies
+├── runtime.txt       # Python 3.11 pin for Streamlit Cloud
+└── README.md
+```
 
-## Architecture
+---
 
-- `app.py` — Streamlit UI and chat management
-- `ingest.py` — PDF loading and chunking
-- `embeddings.py` — ChromaDB collection management
-- `retriever.py` — Semantic search
+## 🚀 Running Locally
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/sawanyak/study-qa-bot.git
+cd study-qa-bot
+pip install -r requirements.txt
+```
+
+### 2. Get a free Groq API key
+
+Sign up at [console.groq.com](https://console.groq.com) and create an API key.
+
+### 3. Add it to a `.env` file
+
+```bash
+echo "GROQ_API_KEY=your_key_here" > .env
+```
+
+### 4. Run
+
+```bash
+streamlit run app.py
+```
+
+The app opens at `http://localhost:8501`.
+
+---
