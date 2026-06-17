@@ -4,6 +4,7 @@ import logging
 logging.getLogger("transformers").setLevel(logging.ERROR)
 import uuid
 from datetime import datetime
+import os
 
 import streamlit as st
 from groq import Groq
