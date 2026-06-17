@@ -244,7 +244,7 @@ if not st.session_state.chats:
 
 # ---- Sidebar ----
 with st.sidebar:
-    st.markdown("### 📚 Study Notes Q&A")
+    st.markdown("### Study Notes Q&A")
 
     if st.button("➕ New chat", use_container_width=True, type="primary"):
         new_chat()
