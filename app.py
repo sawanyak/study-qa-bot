@@ -1,3 +1,7 @@
+import warnings
+warnings.filterwarnings("ignore")
+import logging
+logging.getLogger("transformers").setLevel(logging.ERROR)
 import uuid
 from datetime import datetime
 
